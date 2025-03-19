@@ -207,6 +207,8 @@ def main():
         
         create_report_header(report)
         list_of_constraints=lmt.parse_limits(limit)
+
+        output_json = os.path.splitext(output)[0]+".json"
     
         if homology:
             set_of_markers, _ = pt.parse_peptide_tables(peptide_table, None, None)
@@ -215,6 +217,9 @@ def main():
            
             list_of_markers=homo.find_markers_all_sequences(set_of_sequences, set_of_markers)
             pt.build_peptide_table_from_set_of_markers(list_of_markers,output)
+            if args.web:
+                pt.json_build_peptide_table_from_set_of_markers(list_of_markers,output_json)
+
             create_report_homology(set_of_markers)
             
         if deamidation:
@@ -225,6 +230,8 @@ def main():
             set_of_markers, list_of_headers=pt.parse_peptide_tables(peptide_table, None, None)
             set_of_new_markers=compute_masses.add_deamidation(set_of_markers, set_of_codes)
             pt.build_peptide_table_from_set_of_markers(set_of_markers.union(set_of_new_markers),output, list_of_headers)
+            if args.web:
+                pt.json_build_peptide_table_from_set_of_markers(list_of_markers,output_json)
             create_report_deamidation(peptide_table, set_of_codes)
         
             
@@ -238,6 +245,8 @@ def main():
                 message.escape("No valid peptide markers found.\n")
             list_of_markers=markers.sort_and_merge(set_of_new_markers)
             pt.build_peptide_table_from_set_of_markers(list_of_markers,output)
+            if args.web:
+                pt.json_build_peptide_table_from_set_of_markers(list_of_markers,output_json)
             create_report_allpeptides(set_of_sequences, data["number_of_missed_cleavages"], data["min_peptide_length"], data["max_peptide_length"])
 
                      
@@ -258,6 +267,8 @@ def main():
             set_of_confirmed_markers=marker_filtering.filter_set_of_markers(set_of_markers, final_list_of_spectra, args.resolution, minimal_number_of_spectra)
             list_of_markers=markers.sort_and_merge(set_of_confirmed_markers)
             pt.build_peptide_table_from_set_of_markers(set_of_confirmed_markers,output, list_of_headers)
+            if args.web:
+                pt.json_build_peptide_table_from_set_of_markers(list_of_markers,output_json)
 
         if fillin:
             # to do: check that there is a single peptide table
@@ -281,25 +292,29 @@ def main():
             list_of_markers=markers.sort_and_merge(set_of_new_markers | set_of_complete_markers)
             set_of_markers=ta.add_taxonomy_ranks(list_of_markers, primary_taxonomy)
             pt.build_peptide_table_from_set_of_markers(set_of_markers,output, list_of_headers)
+            if args.web:
+                pt.json_build_peptide_table_from_set_of_markers(list_of_markers,output_json)
             if fasta or directory:
                 create_report_supplement(peptide_table, list_of_markers, set_of_sequences)
             else:
                 create_report_supplement(peptide_table)
 
         create_report_footer(output_dir, output, report)
-        
-        print("")
-        print("   Job completed.")
-        print("   All results are available in the following files.")
-        print("")
-        print(f"   - New peptide table : {output}")
-        print(f"   - Report on the run : {report}")
-        print("")
+
+        if not args.web:
+            print("")
+            print("   Job completed.")
+            print("   All results are available in the following files.")
+            print("")
+            print(f"   - New peptide table : {output}")
+            print(f"   - Report on the run : {report}")
+            print("")
     # TO DO: add the new peptide table, if necessary
 
         if os.path.getsize(os.path.join(output_dir, "warning.log")) > 0:
-            print("Warnings were raised during the execution.")
-            print("Please refer to the warning.log file for detail.")
+            if not args.web:
+                print("Warnings were raised during the execution.")
+                print("Please refer to the warning.log file for detail.")
         
     except message.InputError:
         if not args.web:
