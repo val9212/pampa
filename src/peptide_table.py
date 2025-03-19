@@ -10,6 +10,7 @@ import csv
 import shutil
 import sys
 import re
+import json
 from functools import cmp_to_key, partial
 
 from src import markers as ma
@@ -18,41 +19,26 @@ from src import message
 from src import utils
 from src import config
 
-def rename_field(field):
-        clean={
-            "GENE":"GN",
-            "PROTEIN":"GN",
-            "TAXID":"OX",
-            "TAXON":"OS",
-            "TAXON NAME":"OS",
-            "SEQID":"SeqID"
-                }
-        if field.upper() in clean:
-            return clean[field.upper()]
-        else:
-            return field
-            
-def restitute_field(field):
-    restitute={
-        "OX": "TaxID",
-        "OS": "Taxon name",
-        "GN": "Gene"
-        }
-    if field in restitute:
-        return restitute[field]
-    else:
-        return field
-    
 
 def process_fields_of_a_row(row):
-    clean_row={}
+    clean_row = {}
     for key, value in row.items():
-        clean_key=utils.clean(key)
-        clean_value=utils.clean(value)
+        clean_key = utils.clean(key)
+        clean_value = utils.clean(value)
         if clean_key is None or clean_value is None:
             continue
-        clean_key=rename_field(clean_key)
-        clean_row[clean_key]=clean_value
+
+        upper_key = clean_key.upper()
+        if upper_key in ("GENE", "PROTEIN"):
+            clean_key = "GN"
+        elif upper_key == "TAXID":
+            clean_key = "OX"
+        elif upper_key == "TAXON NAME":
+            clean_key = "OS"
+        elif upper_key == "SEQID":
+            clean_key = "SeqID"
+
+        clean_row[clean_key] = clean_value
     return clean_row
         
 def process_one_row_from_peptide_table(row, i, file=None, warning_on=False):
@@ -119,14 +105,14 @@ def process_one_row_from_peptide_table(row, i, file=None, warning_on=False):
 def parse_peptide_table(peptide_table_file_name, warning_on):
     set_of_markers=set()
     peptide_table = csv.DictReader(open(peptide_table_file_name), delimiter="\t")
-    list_of_headers=list(map(utils.clean, peptide_table.fieldnames))
+    list_of_headers=peptide_table.fieldnames
     for i,row in enumerate(peptide_table):
        # cleaned_row = {key.replace(" ","").lower():value for key, value in row.items()}
         new_markers=process_one_row_from_peptide_table(row,i+2, peptide_table_file_name, warning_on)
         set_of_markers.update(new_markers)
     if len(set_of_markers)==0:
         message.warning("File "+peptide_table_file_name+": no valid data found.") 
-    return set_of_markers, list(map(rename_field, list_of_headers))
+    return set_of_markers, list_of_headers
 
 
 def parse_peptide_tables(list_of_peptide_tables, list_of_constraints, taxonomy, warning_on=True):
@@ -140,6 +126,15 @@ def parse_peptide_tables(list_of_peptide_tables, list_of_constraints, taxonomy, 
         list_of_headers=[]
     return set_of_markers, list_of_headers
 
+def transform(key):
+    if key == "OX":
+        return "TaxID"
+    elif key == "OS":
+        return "Taxon name"
+    elif key == "GN":
+        return "Gene"
+    else:
+        return key
 
 def marker_order(m1, m2, list_of_codes):
     if m1.taxon_name()<m2.taxon_name():
@@ -160,22 +155,23 @@ def marker_order(m1, m2, list_of_codes):
 def build_peptide_table_from_set_of_markers(set_of_markers, outfile_name, list_of_headers=None, append_file=""):
     TSV_file = open(outfile_name, "w")
     if not list_of_headers:
-        headers={restitute_field(key) for m in set_of_markers for key in m.field}
+        headers={transform(key) for m in set_of_markers for key in m.field}
         list_of_headers=(config.sort_headers(headers))
     else:
-        list_of_headers=list(map(restitute_field, list_of_headers))
+        list_of_headers_upper=list(map(utils.standard_upper, list_of_headers))
     writer = csv.DictWriter(TSV_file, fieldnames=list_of_headers, delimiter="\t")
     writer.writeheader()
+    #writer.writerow({key:transform(key) for key in list_of_headers})
     # ordering markers
     set_of_codes=[m.code() for m in set_of_markers]
     list_of_codes=config.sort_headers(set_of_codes)
     list_of_markers=list(set_of_markers)
     list_of_markers.sort(key=cmp_to_key(partial(marker_order, list_of_codes=list_of_codes)))
     for m in list_of_markers:
-        dict={h:m.field[key] for key in m.field for  h in list_of_headers if utils.equiv(h,restitute_field(key))}
+        dict={h:m.field[key] for key in m.field for  h in list_of_headers if   utils.equiv(h, transform(key))}
         writer.writerow(dict)
     TSV_file.close()
-    
+
     """
     if len(append_file)==0:
         
@@ -188,5 +184,24 @@ def build_peptide_table_from_set_of_markers(set_of_markers, outfile_name, list_o
         tsv_file.write(str(marker)+"\n")
     tsv_file.close()
     """
+
+def json_build_peptide_table_from_set_of_markers(set_of_markers, outfile_name, list_of_headers=None, append_file=""):
+    JSON_file = open(outfile_name, "w")
+    if not list_of_headers:
+        headers={transform(key) for m in set_of_markers for key in m.field}
+        list_of_headers=(config.sort_headers(headers))
+    else:
+        list_of_headers_upper=list(map(utils.standard_upper, list_of_headers))
+    set_of_codes=[m.code() for m in set_of_markers]
+    list_of_codes=config.sort_headers(set_of_codes)
+    list_of_markers=list(set_of_markers)
+    list_of_markers.sort(key=cmp_to_key(partial(marker_order, list_of_codes=list_of_codes)))
+    dicts = []
+    for m in list_of_markers:
+        dicts.append(dict(zip(list_of_headers, m.field.values())))
+    json.dump(dicts, JSON_file)
+    JSON_file.close()
+
+
 
 
