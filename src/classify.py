@@ -16,6 +16,7 @@ from src import limit as lmt
 from src import config
 from src import params_checker
 from src import report as rep
+from src import supplement
             
 
 def main(command_line, spectra, taxonomy, peptide_table, fasta, fasta_dir, limit, deamidation, error, neighbour, allsolutions, output, mammals, placentals, birds, web, config_file, isotopes):
@@ -58,6 +59,7 @@ def main(command_line, spectra, taxonomy, peptide_table, fasta, fasta_dir, limit
         set_of_markers.update(compute_masses.add_deamidation(set_of_markers, set_of_codes_for_deamidation))
             
         set_of_markers=markers.sort_and_merge(set_of_markers)
+        supplement.add_marker_names(set_of_markers)
        
         # parsing taxonomy and filtering markers accordingly
         final_taxonomy = ta.merge_taxonomy(set_of_markers, full_taxonomy)

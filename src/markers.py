@@ -56,10 +56,12 @@ class Marker(object):
             return self.field.get("PTM")
 
     def mass(self):
-        if "Mass" not in self.field or len(str(self.field["Mass"]))==0 or float(self.field["Mass"])==0.0:
+        value = self.field.get("Mass")
+        if value is None or len(str(value)) == 0:
             return None
-        else:
-            return float(self.field["Mass"])
+        if float(value) == 0.0:
+            return None
+        return float(value)
         
     def comment(self):
         if "Comment" in self.field:
@@ -483,9 +485,11 @@ def find_matching_sequences(m, set_of_sequences, taxonomy=None, taxonomy_ranks=N
 
 def update_comment(m, comment):
     m.field["Comment"]=comment+ m.comment()
+    return m
 
 def post_comment(m, comment):
     m.field["Comment"]= m.comment() + comment
+    return m
 
 def supplement_markers(set_of_markers, set_of_sequences, error, taxonomy, taxonomy_ranks, config_digestion):
     to_add = set()

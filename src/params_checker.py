@@ -247,7 +247,8 @@ def check_and_update_parameters_craft(homology, deamidation, allpeptides, fillin
     check_limit(limit)
 
     if homology :
-        config, peptide_table, taxonomy = check_model(birds, placentals, mammals, config, peptide_table, taxonomy)
+        if sum([placentals, birds, mammals]) > 0:
+            config, peptide_table, taxonomy = check_model(birds, placentals, mammals, config, peptide_table, taxonomy)
         config = check_config(config)
         check_peptide_table(peptide_table)
         check_sequences(fasta, fasta_dir)
@@ -280,7 +281,8 @@ def check_and_update_parameters_craft(homology, deamidation, allpeptides, fillin
         useless_parameters([(fasta,'-f'), (fasta_dir,'-d'), (taxonomy,'-t')])
 
     if reconstruction:
-        config, peptide_table, taxonomy = check_model(birds, placentals, mammals, config, peptide_table, taxonomy)
+        if sum([placentals, birds, mammals]) > 0:
+            config, peptide_table, taxonomy = check_model(birds, placentals, mammals, config, peptide_table, taxonomy)
         config = check_config(config)
         if not target and not targetfile:
             message.escape("Missing parameter: -x or -X (target species). Stopping execution")
@@ -298,4 +300,3 @@ def check_and_update_parameters_craft(homology, deamidation, allpeptides, fillin
         check_spectra_and_error(spectra, resolution)
 
     return homology, deamidation, allpeptides, fillin, selection, reconstruction, peptide_table, fasta, fasta_dir, spectra, resolution, limit, taxonomy, config, placentals, birds, custom, target, targetfile
-

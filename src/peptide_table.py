@@ -41,7 +41,7 @@ def process_fields_of_a_row(row):
     clean_row={}
     for key, value in row.items():
         clean_key=utils.clean(key)
-        if value=="nan":
+        if pd.isna(value) or utils.equiv(value, "nan"):
             clean_value=None
         else:
             clean_value=utils.clean(value)

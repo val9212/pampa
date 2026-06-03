@@ -122,7 +122,7 @@ def main():
                     message.escape("No valid peptide markers found.\n")
                 list_of_spectra=ms.parse_spectra_files(spectra)
                 config_selection=conf.config_selection_peaks(config)
-                rep.create_report_allpeptides(fasta, fasta_dir, set_of_sequences, config_digestion, limit, list_of_constraints, web, spectra, list_of_spectra, error, config_selection)
+                rep.create_report_allpeptides(fasta, fasta_dir, set_of_sequences, config_digestion, limit, list_of_constraints, deamidation, web, spectra, list_of_spectra, error, config_selection)
                 minimal_number_of_spectra=max(1, len(list_of_spectra)*config_selection)
                 set_of_new_markers=marker_filtering.filter_set_of_markers(set_of_markers, list_of_spectra, error, minimal_number_of_spectra)
                 supplement.add_marker_comment(set_of_new_markers, "In silico digestion, and MALDI filtering.")
@@ -238,7 +238,8 @@ def main():
 
         if deamidation:
             set_of_markers, list_of_headers=pt.parse_peptide_tables(peptide_table, None, None)
-            set_of_markers.update(compute_masses.add_deamidation(set_of_markers, deamidation, set_of_codes_for_deamidation))
+            set_of_markers = compute_masses.add_PTM_or_masses_to_markers(set_of_markers)
+            set_of_markers.update(compute_masses.add_deamidation(set_of_markers, set_of_codes_for_deamidation))
             pt.build_peptide_table_from_set_of_markers(set_of_markers,output, list_of_headers, config_markers)
             rep.create_report_deamidation(peptide_table, set_of_markers, set_of_codes_for_deamidation, web)
 
