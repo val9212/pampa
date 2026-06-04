@@ -71,6 +71,8 @@ def check_marker(row, index, file=None, warning_on=False):
     try:
         if "Mass" in clean_row:
             clean_row["Mass"]=utils.floating(clean_row["Mass"])
+            if clean_row["Mass"]==0.0:
+                del clean_row["Mass"]
     except ValueError:
         message.warning("File "+file+", line "+str(index)+": wrong mass, "+clean_row["Mass"]+ ". Ignored.")
         del clean_row["Mass"]

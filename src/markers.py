@@ -57,12 +57,12 @@ class Marker(object):
 
     def mass(self):
         value = self.field.get("Mass")
-        if value is None or len(str(value)) == 0:
+        if value is None :
+          return None
+        if len(str(value)) == 0 :
             return None
-        if float(value) == 0.0:
-            return None
-        return float(value)
-        
+        return value
+
     def comment(self):
         if "Comment" in self.field:
             return self.field["Comment"]
@@ -485,11 +485,9 @@ def find_matching_sequences(m, set_of_sequences, taxonomy=None, taxonomy_ranks=N
 
 def update_comment(m, comment):
     m.field["Comment"]=comment+ m.comment()
-    return m
 
 def post_comment(m, comment):
     m.field["Comment"]= m.comment() + comment
-    return m
 
 def supplement_markers(set_of_markers, set_of_sequences, error, taxonomy, taxonomy_ranks, config_digestion):
     to_add = set()
@@ -759,6 +757,6 @@ def find_overlapping_markers(set_of_markers):
         key=lambda x: (x[1], x[2])
     )
     for p1, p2 in zip(list_of_positions, list_of_positions[1:]):
-        if p1[2] >= p2[1]:
+        if p1[1] >= p2[0]:
             overlap_list.append((p1[0], p2[0], p2[1]-p1[1]))
     return overlap_list

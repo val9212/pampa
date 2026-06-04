@@ -16,7 +16,6 @@ from src import limit as lmt
 from src import config
 from src import params_checker
 from src import report as rep
-from src import supplement
             
 
 def main(command_line, spectra, taxonomy, peptide_table, fasta, fasta_dir, limit, deamidation, error, neighbour, allsolutions, output, mammals, placentals, birds, web, config_file, isotopes):
@@ -29,7 +28,7 @@ def main(command_line, spectra, taxonomy, peptide_table, fasta, fasta_dir, limit
         report=os.path.join(output_dir, report_file)
         detail=os.path.join(output_dir, detail_file)
         jsonf=os.path.join(output_dir, output_json)
-        rep.create_report_header(command_line, report)
+        rep.create_report_header(command_line, report, web)
         
         (spectra, taxonomy, peptide_table, fasta, fasta_dir, limit, deamidation, error, neighbour, allsolutions, config_file) = params_checker.check_and_update_parameters_classify(spectra, taxonomy, peptide_table, fasta, fasta_dir, limit, deamidation, error, neighbour, allsolutions, mammals, placentals, birds, config_file)
 
@@ -57,9 +56,7 @@ def main(command_line, spectra, taxonomy, peptide_table, fasta, fasta_dir, limit
         if len(set_of_markers)==0:
             message.escape("No valid peptide marker found.\nPlease refer to the warning.log file to trace back the errors.")
         set_of_markers.update(compute_masses.add_deamidation(set_of_markers, set_of_codes_for_deamidation))
-            
         set_of_markers=markers.sort_and_merge(set_of_markers)
-        supplement.add_marker_names(set_of_markers)
        
         # parsing taxonomy and filtering markers accordingly
         final_taxonomy = ta.merge_taxonomy(set_of_markers, full_taxonomy)
