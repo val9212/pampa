@@ -45,7 +45,7 @@ def test_check_and_update_parameters_classify_resets_invalid_neighbour(tmp_path)
     message.configure(str(tmp_path))
     result = params_checker.check_and_update_parameters_classify(
         spectra=str(spectra_dir),
-        taxonomy=None,
+        taxo=None,
         peptide_table=[str(peptide_table)],
         fasta=None,
         fasta_dir=None,
@@ -78,7 +78,7 @@ def test_check_and_update_parameters_classify_rejects_missing_marker_source(tmp_
     with pytest.raises(message.InputError):
         params_checker.check_and_update_parameters_classify(
             spectra=str(spectra_dir),
-            taxonomy=None,
+            taxo=None,
             peptide_table=None,
             fasta=None,
             fasta_dir=None,
