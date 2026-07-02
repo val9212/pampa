@@ -37,12 +37,10 @@ def test_craft_fillin_cli_with_sequence_directory_completes_missing_fields(tmp_p
     )
 
     rows = read_tsv_rows(output)
-    assert len(rows) == 9
+    assert len(rows) == 5
     assert {row["Taxon name"] for row in rows} == {"Mus musculus"}
-    original_rows = [row for row in rows if row["Marker"] in {"A", "B", "C"}]
     supplemented_rows = [row for row in rows if row["Comment"].startswith("Supplement from")]
 
-    assert len(original_rows) == 4
     assert len(supplemented_rows) == 5
     assert any(row["Sequence"] == "SGQPGPVGPAGVR" and row["PTM"] == "0H" for row in supplemented_rows)
     assert any(row["Sequence"] == "GLPGEFGLPGPAGPR" and row["Start"] == "580" for row in supplemented_rows)

@@ -55,12 +55,14 @@ class Taxonomy(object):
                 self.parent[t]=taxid
         
     def init_root(self):
-        s = self.name.keys() | self.children.keys()  # set of all nodes
-        if len(s) == 0: # flat taxonomy  ## A REVOIR DANS PAMPA_CLASSIFY !!!
+        all_nodes = set(self.name.keys()) | set(self.children.keys())
+        if len(all_nodes) == 0: # flat taxonomy  ## A REVOIR DANS PAMPA_CLASSIFY !!!
             self.root = self.name.keys()
             return
-        for taxid in self.children.keys():
-            s = s - self.children[taxid]
+        child_nodes=set()
+        for children in self.children.values():
+            child_nodes.update(children)
+        s = all_nodes - child_nodes
         r=set()
         for t in s:
             if t in self.parent :
