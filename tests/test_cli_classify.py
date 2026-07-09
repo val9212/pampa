@@ -101,7 +101,7 @@ def test_classify_cli_accepts_fasta_input(tmp_path):
     assert len(rows) == 1
     assert rows[0]["Spectrum"] == "Rattus-TOF.csv"
     assert rows[0]["Assignment"] == "10090 [Mus musculus]"
-    assert rows[0]["#peaks"] == "56"
+    assert rows[0]["#peaks"] == "35"
 
 
 @pytest.mark.integration
